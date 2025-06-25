@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:impaxt_alert/pages/on_boarding/on_boarding.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +11,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ImpactAlert',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const ,
+      home: OnboardingScreen(),
     );
   }
 }
