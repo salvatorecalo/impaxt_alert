@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:impaxt_alert/pages/home_page/home_page.dart';
 import 'package:impaxt_alert/pages/on_boarding/on_boarding_content.dart';
 import 'package:impaxt_alert/pages/utils/index.dart';
 import 'package:impaxt_alert/pages/utils/size_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -118,7 +120,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ? Padding(
                     padding: const EdgeInsets.all(30),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('onBoardViewed', true);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomePage()),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
@@ -132,7 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         textStyle:
                         TextStyle(fontSize: (width <= 550) ? 13 : 17),
                       ),
-                      child: const Text(
+                      child: Text(
                         "START",
                         style: TextStyle(
                           color: white
@@ -147,18 +156,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            _controller.jumpToPage(2);
+                            _controller.jumpToPage(contents.length - 1);
                           },
-                          child: const Text(
-                            "SKIP",
-                            style: TextStyle(color: Colors.black),
-                          ),
                           style: TextButton.styleFrom(
                             elevation: 0,
                             textStyle: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: (width <= 550) ? 13 : 17,
                             ),
+                          ),
+                          child: const Text(
+                            "SKIP",
+                            style: TextStyle(color: Colors.black),
                           ),
                         ),
                         ElevatedButton(

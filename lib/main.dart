@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:impaxt_alert/pages/auth_guard/auth_guard.dart';
 import 'package:impaxt_alert/pages/on_boarding/on_boarding.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: OnboardingScreen(),
+      home: AuthGuard(),
     );
   }
 }
