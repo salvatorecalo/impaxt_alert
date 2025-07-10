@@ -1,42 +1,22 @@
+import 'package:flutter/material.dart';
 import 'package:impaxt_alert/logic/supabase/index.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController {
 
-  // SIGNUP
-  Future<String?> signUp(String email, String password, String name) async {
+  Future<bool> signIn(String email) async {
     try {
-      final AuthResponse res = await supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {'first_name': name},
+      await supabase.auth.signInWithOtp(
+          email: email,
+          emailRedirectTo: 'impactalert://login-callback',
       );
-
-      if (res.user != null) {
-        return null;
-      }
+      return true;
     } on AuthException catch (e) {
-      return e.message;
+      print('Errore login: ${e.message}');
+    } catch (e) {
+      print('Errore generico: $e');
     }
-    return null;
-  }
-
-  // LOGIN
-  Future<String?> signIn(String email, String password) async {
-    try {
-      final AuthResponse res = await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      if (res.user != null) {
-        return null;
-      } else {
-        return "User not found";
-      }
-    } on AuthException catch (e) {
-      return e.message;
-    }
+    return false;
   }
 
   // LOGOUT

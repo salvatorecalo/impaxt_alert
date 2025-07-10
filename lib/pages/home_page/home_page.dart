@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:impaxt_alert/pages/home_page/pages/history_page/history_page.dart';
+import 'package:impaxt_alert/pages/home_page/pages/index.dart';
 import 'package:impaxt_alert/pages/utils/index.dart';
 
 class HomePage extends StatefulWidget {
@@ -43,8 +44,8 @@ class _HomePageState extends State<HomePage> {
         physics: const NeverScrollableScrollPhysics(),
         onPageChanged: onPageChanged,
         children: [
-          Container(color: Colors.blue),
-          Container(color: Colors.red),
+          HistoryPage(),
+          SettingsPage(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
