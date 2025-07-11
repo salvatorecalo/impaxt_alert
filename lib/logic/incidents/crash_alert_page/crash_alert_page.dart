@@ -376,7 +376,7 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     print(Geolocator.getCurrentPosition());
     try {
       // Invia SMS di emergenza
-      final contacts = await ref.read(contactsProvider).getNumbers();
+      final contacts = ref.read(contactsProvider);
       final msg = 'SOS! Mi trovo in pericolo '
           '${DateTime.now().toIso8601String()} '
           '(x:${widget.evt.x.toStringAsFixed(1)}, '

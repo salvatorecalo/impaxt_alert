@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:impaxt_alert/logic/incidents/crash_alert_page/crash_alert_page.dart';
 import 'package:impaxt_alert/logic/incidents/incident_list_item./incident_list_item.dart';
 import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/user_logic/auth_controller/provider/auth_controller_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/user_session_provider/user_session_provider.dart';
 import 'package:impaxt_alert/pages/login_page/login_page.dart';
 import 'package:impaxt_alert/pages/home_page/pages/history_page/widgets/index.dart';
@@ -19,11 +20,28 @@ class HistoryPage extends ConsumerStatefulWidget {
 
 class _HistoryPageState extends ConsumerState<HistoryPage> {
   bool _isDialogOpen = false;
+  bool _hasSyncedOnce = false; // Flag per evitare sync multipli
 
   @override
   void initState() {
     super.initState();
-    _requestPermissions();      // funzione “ponte” che fa tutto in ordine
+    _requestPermissions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncDataOnce();
+    });
+  }
+
+  Future<void> _syncDataOnce() async {
+    if (!_hasSyncedOnce) {
+      _hasSyncedOnce = true;
+      final authController = ref.read(authControllerProvider);
+      try {
+        await authController.pushLocalIncidents(ref);
+        await authController.pushLocalContacts(ref);
+      } catch (e) {
+        print('Errore durante la sincronizzazione: $e');
+      }
+    }
   }
 
   Future<void> _requestPermissions() async {
@@ -154,6 +172,17 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     );
   }
 
+  Future<void> _syncAfterNewIncident() async {
+    final authController = ref.read(authControllerProvider);
+    try {
+      await authController.pushLocalIncidents(ref);
+      await authController.pushLocalContacts(ref);
+      ref.invalidate(incidentsProvider);
+    } catch (e) {
+      print('Errore sincronizzazione post-incident: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sessionAsync = ref.watch(authSessionProvider);
@@ -170,6 +199,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         );
 
         _isDialogOpen = false;
+        await _syncAfterNewIncident();
       }
     });
 
@@ -183,7 +213,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           sessionAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
-            data: (session) => session == null ? _GuestBanner() : _PremiumBanner(),
+            data: (session) => session == null ? _GuestBanner() : SizedBox.shrink(),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),

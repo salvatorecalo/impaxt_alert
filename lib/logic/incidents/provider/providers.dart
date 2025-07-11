@@ -94,7 +94,7 @@ class IncidentDao {
   IncidentDao._();
   static final instance = IncidentDao._();
 
-  static Future<Database> _openDb() async {
+  Future<Database> _openDb() async {
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, 'impact_alert.db');
     return openDatabase(
@@ -117,6 +117,13 @@ class IncidentDao {
           contact_name TEXT,
           contact_phone_number TEXT,
           PRIMARY KEY (incident_uuid, contact_name)
+        )
+      ''');
+        await db.execute('''
+        CREATE TABLE contacts (
+          contact_name TEXT,
+          contact_phone_number TEXT,
+          PRIMARY KEY (contact_phone_number, contact_name)
         )
       ''');
       },
@@ -145,13 +152,16 @@ class IncidentDao {
     required double x,
     required double y,
     required double z,
-    WidgetRef? ref,
+    required WidgetRef ref,
     int? called_rescue,
-    int? response_time
+    int? response_time,
   }) async {
     final db = await _openDb();
     final uuid = const Uuid().v4();
-    final contacts = await ref!.watch(contactsProvider).getNumbers();
+
+    // Leggi direttamente lo stato attuale della lista contatti
+    final contacts = ref.read(contactsProvider);
+
     await db.insert(
       'incidents',
       {
@@ -166,18 +176,20 @@ class IncidentDao {
       },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
+
     for (var contact in contacts) {
       await db.insert(
-          'incident_contact_notificated',
-          {
-            'incident_uuid': uuid,
-            'contact_name': contact['name'],
-            'contact_phone_number': contact['phoneNumber']
-          },
+        'incident_contact_notificated',
+        {
+          'incident_uuid': uuid,
+          'contact_name': contact.name,
+          'contact_phone_number': contact.phoneNumber,
+        },
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }
   }
+
 
   Future<List<Map<String, Object?>>> getIncidents() async {
     final db = await _openDb();
@@ -214,19 +226,69 @@ final ttsProvider = Provider((_) => FlutterTts());
 
 /// Repository molto semplice che restituisce numeri di telefono.
 /// Sostituiscilo con la tua logica di persistenza contatti.
-class ContactsRepository {
-  Future<List<Map<String, String>>> getNumbers() async {
-    return [
-      {
-        "name": "Mum",
-        "phoneNumber": '+393441557187'
-      }
-    ];
+class Contact {
+  final String name;
+  final String phoneNumber;
+
+  Contact({required this.name, required this.phoneNumber});
+
+  Contact copyWith({String? name, String? phoneNumber}) {
+    return Contact(
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+    );
   }
 }
 
-final contactsProvider =
-Provider<ContactsRepository>((_) => ContactsRepository());
+class ContactsNotifier extends StateNotifier<List<Contact>> {
+  ContactsNotifier() : super([]);
+
+  Future<void> addContact(Contact contact, WidgetRef ref) async {
+    if (!state.any((c) => c.phoneNumber == contact.phoneNumber)) {
+      state = [...state, contact];
+    }
+    final dao = ref.read(daoProvider);
+    final db = await dao._openDb();
+    db.insert(
+      "contacts",
+      {
+        'contact_name': contact.name,
+        'contact_phone_number': contact.phoneNumber,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  Future<void> removeContact(String phoneNumber) async {
+    state = state.where((c) => c.phoneNumber != phoneNumber).toList();
+  }
+
+  Future<void> updateContact(Contact updatedContact, WidgetRef ref) async {
+    // Sostituisci il contatto nella lista
+    state = [
+      for (final c in state)
+        if (c.phoneNumber == updatedContact.phoneNumber) updatedContact else c
+    ];
+
+    final dao = ref.read(daoProvider);
+    final db = await dao._openDb();
+
+    await db.update(
+      'contacts_table',
+      {
+        'contact_name': updatedContact.name,
+        'contact_phone_number': updatedContact.phoneNumber,
+      },
+      where: 'contact_phone_number = ?',
+      whereArgs: [updatedContact.phoneNumber],
+    );
+  }
+
+}
+
+final contactsProvider = StateNotifierProvider<ContactsNotifier, List<Contact>>((ref) {
+  return ContactsNotifier();
+});
 
 /* -------------------------------------------------------------------------- */
 /* 5.  S M S   S E R V I C E   (Twilio Function)                              */
@@ -236,7 +298,7 @@ class SmsService {
       'https://YOUR_FUNCTION_DOMAIN.twil.io/send-sms'; // <-- sostituisci
 
   Future<void> sendIncidentAlert(
-      List<Map<String, String>> numbers, String message) async {
+      List<Contact> numbers, String message) async {
 
     final res = await http.post(
       Uri.parse(_functionUrl),

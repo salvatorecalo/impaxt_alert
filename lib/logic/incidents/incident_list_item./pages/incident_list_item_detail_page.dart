@@ -33,9 +33,8 @@ class IncidentListItemDetailPage extends StatelessWidget {
             onPressed: () async {
               await SharePlus.instance.share(
                 ShareParams(
-                  title: "Riepilogo",
                   text:
-                      "Data: $date \n Ora: $hour \n Forza: $force \n Sono stati chiamati i contatti? ${called_rescue == 1 ? "si" : "no"} \n temo di risposta alla domanda ${response_time == 0 ? "Nessuna" : "$response_time s"}",
+                  "Riepilogo \n Data: $date \n Ora: $hour \n Forza: $force \n Sono stati chiamati i contatti? ${called_rescue == 1 ? "si" : "no"} \n Tempo di risposta alla domanda ${response_time == 0 ? "Nessuna" : "${response_time} s"}",
                 ),
               );
             },
