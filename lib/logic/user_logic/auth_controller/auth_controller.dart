@@ -48,7 +48,7 @@ class AuthController {
         for (var incident in incidents) {
           try {
             await supabase.from("incidents").insert({
-              "incident_uuid": incident['uuid'],
+              "uuid": incident['uuid'],
               "created_at": incident['created_at'],
               'x': incident['x'],
               'y': incident['y'],

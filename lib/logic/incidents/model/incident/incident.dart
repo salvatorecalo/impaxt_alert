@@ -7,6 +7,8 @@ class Incident {
   final int called_rescue;
   final bool synced;
   final int response_time;
+  final double lat;
+  final double long;
 
   Incident({
     required this.uuid,
@@ -17,6 +19,8 @@ class Incident {
     required this.synced,
     required this.called_rescue,
     required this.response_time,
+    required this.lat,
+    required this.long
   });
 
   factory Incident.fromMap(Map<String, dynamic> map) {
@@ -28,7 +32,9 @@ class Incident {
       z: map['z'],
       synced: map['synced'] == 1,
       called_rescue: map['called_rescue'],
-      response_time: map['response_time']
+      response_time: map['response_time'],
+      lat: map['lat'],
+      long: map['long']
     );
   }
 
@@ -41,7 +47,9 @@ class Incident {
       'z': z,
       'synced': synced ? 1 : 0,
       'called_rescue': called_rescue,
-      'response_time': response_time
+      'response_time': response_time,
+      'lat': lat,
+      'long': long
     };
   }
 }

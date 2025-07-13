@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:impaxt_alert/logic/incidents/incident_list_item./pages/incident_list_item_detail_page.dart';
@@ -13,7 +15,12 @@ class IncidentListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final double force = incident.x.abs() + incident.y.abs() + incident.z.abs();
-    final String hour = incident.createdAt.toLocal().toString().substring(0, 11);
+    final double acceleration = sqrt(
+        incident.x * incident.x +
+            incident.y * incident.y +
+            incident.z * incident.z
+    );
+    final String hour = incident.createdAt.toLocal().toString().substring(11, 19);
     final String date = incident.createdAt.toLocal().toString().substring(0, 11);
     final contacts = ref.watch(contactsByIncidentProvider(incident.uuid));
     return contacts.when(
@@ -30,6 +37,9 @@ class IncidentListItem extends ConsumerWidget {
                       called_rescue: incident.called_rescue,
                       contacts: contacts,
                       response_time: incident.response_time,
+                      lat: incident.lat,
+                      long: incident.long,
+                      acceleration: acceleration
                     )
                 ),
               );
@@ -56,8 +66,14 @@ class IncidentListItem extends ConsumerWidget {
                 ),
               ],
             ),
-            subtitle: Text(
-              'Forza: ${force.toStringAsFixed(1)}g',
+            subtitle: Row(
+              spacing: 10,
+              children: [
+                Text("Intensità impatto", style: TextStyle(fontWeight: FontWeight.bold)),
+                force > 20
+                    ? Text("alto")
+                    : (force < 20 ? Text("basso") : Text("medio")),
+              ],
             ),
           );
         },

@@ -84,7 +84,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   backgroundColor: blue,
                 ),
                   child: Text(
-                      "Accedi"
+                      "Accedi",
+                    style: TextStyle(
+                      color: white,
+                    ),
                   ),
               ),
             ],

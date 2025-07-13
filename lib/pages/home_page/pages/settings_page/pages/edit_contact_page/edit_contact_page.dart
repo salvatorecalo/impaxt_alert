@@ -9,66 +9,92 @@ class EditContactPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final contacts = ref.watch(contactsProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text('Modifica lista contatti')),
-      body: contacts.isEmpty
-          ? Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Nessun contatto trovato"),
-              SizedBox(
-                height: 20,
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: blue,
-                  minimumSize: Size(double.infinity, 50),
-                ),
-                onPressed: () {
-                  _showAddDialog(context, ref);
-                },
-                child: Text(
-                  "Aggiungine uno!",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: white
-                  ),
-                ),
-              ),
-
-            ],
-          ),
-        ),
-      )
-          : ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          final contact = contacts[index];
-          return ListTile(
-            title: Text(contact.name),
-            subtitle: Text(contact.phoneNumber),
-            trailing: Row(
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(title: Text('Modifica lista contatti')),
+        body: contacts.isEmpty
+            ? Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    _showEditDialog(context, ref, contact);
-                  },
+                Text("Nessun contatto trovato"),
+                SizedBox(
+                  height: 20,
                 ),
-                IconButton(
-                  icon: Icon(Icons.delete),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: blue,
+                    minimumSize: Size(double.infinity, 50),
+                  ),
                   onPressed: () {
-                    ref.read(contactsProvider.notifier).removeContact(contact.phoneNumber);
+                    _showAddDialog(context, ref);
                   },
+                  child: Text(
+                    "Aggiungine uno!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: white
+                    ),
+                  ),
                 ),
               ],
             ),
-          );
-        },
+          ),
+        )
+            : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                          itemCount: contacts.length,
+                          itemBuilder: (context, index) {
+                  final contact = contacts[index];
+                  return ListTile(
+                    title: Text(contact.name),
+                    subtitle: Text(contact.phoneNumber),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            _showEditDialog(context, ref, contact);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            ref.read(contactsProvider.notifier).removeContact(contact.phoneNumber);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                          },
+                        ),
+                ),
+              ],
+            ),
+        bottomNavigationBar: Container(
+          margin: const EdgeInsets.all(10),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: blue,
+              minimumSize: Size(double.infinity, 50),
+            ),
+            onPressed: () {
+              _showAddDialog(context, ref);
+            },
+            child: Text(
+              "Aggiungine uno!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: white
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

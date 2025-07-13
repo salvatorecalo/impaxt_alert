@@ -359,6 +359,8 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
 
   void _handleYes() async {
     print("Risposta: SI - Torno alla home");
+    Position _position = await _determinePosition();
+    print(_position);
     await ref.read(daoProvider).insert(
         x: widget.evt.x,
         y: widget.evt.y,
@@ -366,6 +368,8 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
         ref: ref,
         called_rescue: 1,
         response_time: 30-sec,
+        lat: _position.latitude,
+        long: _position.longitude,
     );
 
     _navigateBack();
@@ -373,7 +377,6 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
 
   Future<void> _handleNo() async {
     print("Risposta: NO - Invio SMS e torno alla home");
-    print(Geolocator.getCurrentPosition());
     try {
       // Invia SMS di emergenza
       final contacts = ref.read(contactsProvider);
@@ -385,6 +388,9 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
 
       await ref.read(smsProvider).sendIncidentAlert(contacts, msg);
 
+      Position _position = await _determinePosition();
+
+
       await ref.read(daoProvider).insert(
         x: widget.evt.x,
         y: widget.evt.y,
@@ -392,12 +398,15 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
         ref: ref,
         called_rescue: 1,
         response_time: 30-sec,
+        lat: _position.latitude,
+        long: _position.longitude,
       );
 
-      _determinePosition();
 
       print("SMS inviato con successo");
     } catch (e) {
+      Position _position = await _determinePosition();
+
       await ref.read(daoProvider).insert(
           x: widget.evt.x,
           y: widget.evt.y,
@@ -405,8 +414,9 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
           ref: ref,
           called_rescue: 1,
           response_time: 30-sec,
+          lat: _position.latitude,
+          long: _position.longitude,
       );
-      _determinePosition();
       print('Errore invio SMS: $e');
     }
 
