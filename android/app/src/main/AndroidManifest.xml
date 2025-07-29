@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <!-- Permessi per i sensori -->
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true"
         tools:targetApi="eclair" />
@@ -48,6 +50,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="impactalert"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

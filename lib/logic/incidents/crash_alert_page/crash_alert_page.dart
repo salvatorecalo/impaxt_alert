@@ -404,6 +404,8 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
 
 
       print("SMS inviato con successo");
+      _navigateBack();
+
     } catch (e) {
       Position _position = await _determinePosition();
 

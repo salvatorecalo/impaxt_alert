@@ -1,7 +1,7 @@
 name: impaxt_alert
 description: "Call rescued after Impact"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 environment:
   sdk: ^3.8.1
 dependencies:
@@ -29,6 +29,8 @@ dependencies:
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
   flutter_launcher_icons: ^0.14.4
+  in_app_purchase: ^3.2.3
+  flutter_contacts: ^1.1.9+2
 
 
 dev_dependencies:

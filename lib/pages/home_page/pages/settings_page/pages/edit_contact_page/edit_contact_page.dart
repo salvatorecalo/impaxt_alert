@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart' hide Contact;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
 import 'package:impaxt_alert/pages/utils/index.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EditContactPage extends ConsumerWidget {
-  @override
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contacts = ref.watch(contactsProvider);
@@ -14,68 +16,75 @@ class EditContactPage extends ConsumerWidget {
         appBar: AppBar(title: Text('Modifica lista contatti')),
         body: contacts.isEmpty
             ? Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Nessun contatto trovato"),
-                SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: blue,
-                    minimumSize: Size(double.infinity, 50),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Column(
+                    children: [
+                      Text("Nessun contatto trovato"),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: TextButton(
+                          onPressed: () async {
+                            await launchUrl(
+                              Uri.parse(
+                                "https://salvatorecalo.github.io/impaxt_alert_privacy_policy.github.io/",
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Privacy e trattamento dati",
+                            style: TextStyle(fontSize: 16, color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  onPressed: () {
-                    _showAddDialog(context, ref);
-                  },
-                  child: Text(
-                    "Aggiungine uno!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: white
-                    ),
-                  ),
                 ),
-              ],
-            ),
-          ),
-        )
-            : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
+              )
+            : Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
                           itemCount: contacts.length,
                           itemBuilder: (context, index) {
-                  final contact = contacts[index];
-                  return ListTile(
-                    title: Text(contact.name),
-                    subtitle: Text(contact.phoneNumber),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            _showEditDialog(context, ref, contact);
+                            final contact = contacts[index];
+                            return ListTile(
+                              title: Text(contact.name),
+                              subtitle: Text(contact.phoneNumber),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  ref
+                                      .read(contactsProvider.notifier)
+                                      .removeContact(contact.phoneNumber);
+                                },
+                              ),
+                            );
                           },
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            ref.read(contactsProvider.notifier).removeContact(contact.phoneNumber);
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: TextButton(
+                          onPressed: () async {
+                            await launchUrl(
+                              Uri.parse(
+                                "https://salvatorecalo.github.io/impaxt_alert_privacy_policy.github.io/",
+                              ),
+                            );
                           },
+                          child: Text(
+                            "Privacy e trattamento dati",
+                            style: TextStyle(fontSize: 16, color: Colors.blue),
+                          ),
                         ),
-                      ],
-                    ),
-                  );
-                          },
-                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
         bottomNavigationBar: Container(
           margin: const EdgeInsets.all(10),
           child: ElevatedButton(
@@ -87,11 +96,9 @@ class EditContactPage extends ConsumerWidget {
               _showAddDialog(context, ref);
             },
             child: Text(
-              "Aggiungine uno!",
+              "Aggiungine uno",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: white
-              ),
+              style: TextStyle(color: white),
             ),
           ),
         ),
@@ -99,72 +106,86 @@ class EditContactPage extends ConsumerWidget {
     );
   }
 
+  Future<bool> _requestContactsPermission(BuildContext context) async {
+    var status = await Permission.contacts.status;
 
-  void _showAddDialog(BuildContext context, WidgetRef ref) {
-    final nameController = TextEditingController();
-    final phoneController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Aggiungi contatto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: InputDecoration(labelText: 'Nome')),
-            TextField(controller: phoneController, decoration: InputDecoration(labelText: 'Telefono')),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Annulla'),
+    if (status.isGranted) {
+      return true;
+    } else if (status.isDenied) {
+      final result = await Permission.contacts.request();
+      if (result.isGranted) {
+        return true;
+      } else if (result.isPermanentlyDenied) {
+        bool openSettings = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Permesso necessario"),
+            content: Text(
+              "L'app necessita il permesso ai contatti. Vuoi aprire le impostazioni?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text("No"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text("Sì"),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              final newContact = Contact(name: nameController.text, phoneNumber: phoneController.text);
-              ref.read(contactsProvider.notifier).addContact(newContact, ref);
-              Navigator.pop(context);
-            },
-            child: Text('Salva'),
-          ),
-        ],
-      ),
-    );
+        );
+        if (openSettings == true) {
+          await openAppSettings();
+        }
+      }
+      return false;
+    } else if (status.isPermanentlyDenied) {
+      await openAppSettings();
+      return false;
+    }
+    return false;
   }
 
-  void _showEditDialog(BuildContext context, WidgetRef ref, Contact contact) {
-    final nameController = TextEditingController(text: contact.name);
-    final phoneController = TextEditingController(text: contact.phoneNumber);
+  void _showAddDialog(BuildContext context, WidgetRef ref) async {
+    final granted = await _requestContactsPermission(context);
+    if (!granted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Permesso contatti negato")));
+      return;
+    }
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Modifica contatto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: InputDecoration(labelText: 'Nome')),
-            TextField(controller: phoneController, decoration: InputDecoration(labelText: 'Telefono')),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Annulla'),
-          ),
-          TextButton(
-            onPressed: () {
-              final updatedContact = contact.copyWith(
-                name: nameController.text,
-                phoneNumber: phoneController.text,
-              );
-              ref.read(contactsProvider.notifier).updateContact(updatedContact, ref);
-              Navigator.pop(context);
+      builder: (ctx) => Center(child: const CircularProgressIndicator()),
+    );
+
+    final contacts = await FlutterContacts.getContacts(withProperties: true);
+
+    Navigator.of(context).pop();
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => ListView.builder(
+        itemCount: contacts.length,
+        itemBuilder: (ctx, index) {
+          final c = contacts[index];
+          return ListTile(
+            title: Text(c.displayName),
+            subtitle: c.phones.isNotEmpty ? Text(c.phones.first.number) : null,
+            onTap: () {
+              if (c.phones.isNotEmpty) {
+                final _contact = Contact(
+                  name: c.displayName,
+                  phoneNumber: c.phones.first.number,
+                );
+                ref.read(contactsProvider.notifier).addContact(_contact, ref);
+                Navigator.of(context).pop(); // chiudi bottom sheet
+              }
             },
-            child: Text('Salva'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

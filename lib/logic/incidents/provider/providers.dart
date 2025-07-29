@@ -9,6 +9,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+
 /* --- State --- */
 class SensorState {
   final bool incidentDetected;
@@ -34,7 +35,7 @@ class SensorStateNotifier extends StateNotifier<SensorState> {
         /* 1️⃣ Salva l’evento e alza il flag */
         state = state.copyWith(incidentDetected: true, lastEvent: evt);
 
-        /* 2️⃣ Dopo 1 s abbassa il flag (UI chiude dialog) */
+        /* 2️⃣ D opo 1 s abbassa il flag (UI chiude dialog) */
         Timer(const Duration(seconds: 1), () {
           state = state.copyWith(incidentDetected: false);
         });

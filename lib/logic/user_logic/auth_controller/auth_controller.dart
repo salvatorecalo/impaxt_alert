@@ -39,7 +39,7 @@ class AuthController {
   }
 
   Future<void> pushLocalIncidents(WidgetRef ref) async {
-    final session = ref.watch(authSessionProvider);
+    final session = ref.watch(authSessionProvider).asData?.value;
     if (session != null) {
       final dao = ref.watch(daoProvider);
       final incidents = await dao.getIncidents();
@@ -66,7 +66,7 @@ class AuthController {
   }
 
   Future<void> pushLocalContacts(WidgetRef ref) async {
-    final session = ref.watch(authSessionProvider);
+    final session = ref.watch(authSessionProvider).asData?.value;
     if (session != null) {
       final dao = ref.watch(daoProvider);
       final incidents = await dao.getIncidents();
