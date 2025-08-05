@@ -6,7 +6,7 @@ import 'package:impaxt_alert/logic/incidents/provider/incidents_provider/inciden
 import 'package:impaxt_alert/logic/incidents/provider/sensor/sensor_data_provider/sensor_data_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/auth_controller/provider/auth_controller_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/user_session_provider/user_session_provider.dart';
-import 'package:impaxt_alert/pages/home_page/pages/index.dart';
+import 'package:impaxt_alert/pages/home_page/pages/history_page/subpages/no_incident_relevetion/no_incident_relevation.dart';
 import 'package:impaxt_alert/pages/login_page/login_page.dart';
 import 'package:impaxt_alert/pages/home_page/pages/history_page/widgets/index.dart';
 import 'package:impaxt_alert/pages/utils/index.dart';
@@ -215,33 +215,51 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         if (todayCount >= 3) {
           if (!_isDialogOpen) {
             _isDialogOpen = true;
-            showDialog(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: Text("Limite giornaliero raggiunto"),
-                content: Text("Hai esaurito il numero di rilevazioni possibili giornaliere. Riprova domani o acquista la possibilità di fare rilevazioni."),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.push(
-                        context,
-                      MaterialPageRoute(builder: (context) => ShopPage(),
-                      ),
-                    ),
-                    child: TextButton(
-                        child: Text("Acquista"),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        widget.onGoToShop?.call();
-                      },
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text("Annulla"),
-                  ),
-                ],
-              ),
-            ).then((_) => _isDialogOpen = false);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => NoIncidentRelevation(onGoToShop: widget.onGoToShop))
+            );
+          //   showDialog(
+          //     context: context,
+          //     builder: (_) => AlertDialog(
+          //       title: Text(
+          //           "Limite giornaliero raggiunto",
+          //         style: TextStyle(
+          //           fontWeight: FontWeight.bold,
+          //         ),
+          //       ),
+          //       content: Text("Hai esaurito il numero di rilevazioni possibili giornaliere. Riprova domani o acquista la possibilità di fare rilevazioni."),
+          //       actions: [
+          //         TextButton(
+          //           onPressed: () => Navigator.push(
+          //               context,
+          //             MaterialPageRoute(builder: (context) => ShopPage(),
+          //             ),
+          //           ),
+          //           child: ElevatedButton(
+          //             style: ElevatedButton.styleFrom(
+          //                 backgroundColor: blue,
+          //               ),
+          //               child: Text(
+          //                   "Acquista",
+          //                   style: TextStyle(
+          //                     color: white,
+          //                   ),
+          //               ),
+          //             onPressed: () {
+          //               Navigator.pop(context);
+          //               widget.onGoToShop?.call();
+          //             },
+          //           ),
+          //         ),
+          //         TextButton(
+          //           onPressed: () => Navigator.pop(context),
+          //           child: Text("Annulla"),
+          //         ),
+          //       ],
+          //     ),
+          //   ).then((_) => _isDialogOpen = false);
           }
           return;
         }

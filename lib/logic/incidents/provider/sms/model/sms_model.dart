@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:impaxt_alert/logic/incidents/provider/contacts/model/my_contact_model.dart';
 
 class SmsService {
-  static const _url = 'https://impaxt-alert-server.fly.dev/';
+  static const _url = const String.fromEnvironment("SERVER_URL");
 
   Future<void> sendIncidentAlert(List<Contact> contacts, String message) async {
     final futures = contacts.map((contact) async {
