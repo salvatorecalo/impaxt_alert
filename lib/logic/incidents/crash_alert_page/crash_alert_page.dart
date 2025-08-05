@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/incidents/provider/contacts/contacts_provider.dart';
+import 'package:impaxt_alert/logic/incidents/provider/incident_dao/incident_dao_provider/incident_dao_provider.dart';
+import 'package:impaxt_alert/logic/incidents/provider/sms/sms_provider.dart';
+import 'package:impaxt_alert/logic/incidents/provider/tts_provider/tts_provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -10,6 +13,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 
 class CrashAlertPage extends ConsumerStatefulWidget {
   const CrashAlertPage({required this.evt, super.key});
+
   final AccelerometerEvent evt;
 
   @override
@@ -67,7 +71,8 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
           // Riavvia solo se non stiamo ascoltando e non abbiamo una risposta
           if ((status == 'done' || status == 'notListening') &&
               !_hasValidResponse(_recognizedWords) &&
-              !_isListening) { // Aggiunto controllo per evitare restart durante l'ascolto
+              !_isListening) {
+            // Aggiunto controllo per evitare restart durante l'ascolto
             _scheduleRestart();
           }
         },
@@ -99,34 +104,34 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     // Gestisci diversi tipi di errori
     switch (error.errorMsg) {
       case 'error_busy':
-      // Il servizio è occupato, riprova dopo un po'
+        // Il servizio è occupato, riprova dopo un po'
         print('Servizio speech occupato, riprovo tra 3 secondi');
         _scheduleRestart(delay: 3000);
         break;
       case 'error_network':
-      // Errore di rete, riprova
+        // Errore di rete, riprova
         print('Errore di rete, riprovo tra 5 secondi');
         _scheduleRestart(delay: 5000);
         break;
       case 'error_no_match':
-      // Nessun match, continua ad ascoltare
+        // Nessun match, continua ad ascoltare
         print('Nessun match trovato, riprovo tra 1 secondo');
         _scheduleRestart(delay: 1000);
         break;
       case 'error_audio':
-      // Problema audio, riprova
+        // Problema audio, riprova
         print('Problema audio, riprovo tra 2 secondi');
         _scheduleRestart(delay: 2000);
         break;
       case 'error_permission':
-      // Problema permessi
+        // Problema permessi
         print('Errore permessi, disabilito speech');
         if (mounted) {
           setState(() => _speechEnabled = false);
         }
         return;
       default:
-      // Solo per errori realmente permanenti
+        // Solo per errori realmente permanenti
         if (error.permanent) {
           print('Errore permanente, disabilito speech');
           if (mounted) {
@@ -146,7 +151,11 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     print('Scheduling restart in ${delay}ms');
     _restartTimer?.cancel();
     _restartTimer = Timer(Duration(milliseconds: delay), () {
-      if (!_disposed && !_responseProcessed && _speechEnabled && mounted && _ttsCompleted) {
+      if (!_disposed &&
+          !_responseProcessed &&
+          _speechEnabled &&
+          mounted &&
+          _ttsCompleted) {
         print('Riavvio speech recognition');
         _startListening();
       }
@@ -180,10 +189,14 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     try {
       // Prima il TTS
       print('Avvio TTS...');
-      await ref.read(ttsProvider).speak('Tutto ok? Premi Sì o No o dillo a voce');
+      await ref
+          .read(ttsProvider)
+          .speak('Tutto ok? Premi Sì o No o dillo a voce');
 
       // Aspetta che il TTS finisca prima di iniziare il speech recognition
-      await Future.delayed(const Duration(milliseconds: 3000)); // Aumentato a 3 secondi
+      await Future.delayed(
+        const Duration(milliseconds: 3000),
+      ); // Aumentato a 3 secondi
 
       _ttsCompleted = true;
       print('TTS completato, avvio speech recognition');
@@ -212,7 +225,9 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
       if (_speechToText.isListening) {
         print('>>> Fermando ascolto precedente');
         await _speechToText.stop();
-        await Future.delayed(const Duration(milliseconds: 1000)); // Aumentato delay
+        await Future.delayed(
+          const Duration(milliseconds: 1000),
+        ); // Aumentato delay
       }
 
       if (_disposed || _responseProcessed) return;
@@ -234,8 +249,10 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
             _processVoiceResponse(words);
           }
         },
-        listenFor: const Duration(seconds: 15), // Aumentato a 15 secondi
-        pauseFor: const Duration(seconds: 2),   // Ridotto a 2 secondi
+        listenFor: const Duration(seconds: 15),
+        // Aumentato a 15 secondi
+        pauseFor: const Duration(seconds: 2),
+        // Ridotto a 2 secondi
         localeId: 'it_IT',
         onSoundLevelChange: (level) {
           // Opzionale: puoi usare questo per mostrare il livello audio
@@ -254,10 +271,34 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
   bool _hasValidResponse(String words) {
     if (words.isEmpty) return false;
 
-    final yesWords = ['sì', 'si', 'yes', 'ok', 'okay', 'va bene', 'tutto ok',
-      'tutto bene', 'sto bene', 'bene', 'perfetto', 'va bene', 'tutto apposto'];
-    final noWords = ['no', 'aiuto', 'help', 'non sto bene', 'male', 'emergenza',
-      'chiamate', 'soccorso', 'non va bene', 'male', 'non bene'];
+    final yesWords = [
+      'sì',
+      'si',
+      'yes',
+      'ok',
+      'okay',
+      'va bene',
+      'tutto ok',
+      'tutto bene',
+      'sto bene',
+      'bene',
+      'perfetto',
+      'va bene',
+      'tutto apposto',
+    ];
+    final noWords = [
+      'no',
+      'aiuto',
+      'help',
+      'non sto bene',
+      'male',
+      'emergenza',
+      'chiamate',
+      'soccorso',
+      'non va bene',
+      'male',
+      'non bene',
+    ];
 
     // Controlla se contiene parole complete per evitare falsi positivi
     for (String word in yesWords) {
@@ -280,8 +321,21 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
   void _processVoiceResponse(String words) {
     if (_disposed || _responseProcessed) return;
 
-    final yesWords = ['sì', 'si', 'yes', 'ok', 'okay', 'va bene', 'tutto ok',
-      'tutto bene', 'sto bene', 'bene', 'perfetto', 'va bene', 'tutto apposto'];
+    final yesWords = [
+      'sì',
+      'si',
+      'yes',
+      'ok',
+      'okay',
+      'va bene',
+      'tutto ok',
+      'tutto bene',
+      'sto bene',
+      'bene',
+      'perfetto',
+      'va bene',
+      'tutto apposto',
+    ];
 
     final isYes = yesWords.any((word) => words.contains(word));
     print("Risposta vocale: ${isYes ? 'SI' : 'NO'} per: '$words'");
@@ -314,7 +368,6 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
       setState(() => _isListening = false);
     }
   }
-
 
   /// Determine the current position of the device.
   ///
@@ -349,7 +402,8 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     if (permission == LocationPermission.deniedForever) {
       // Permissions are denied forever, handle appropriately.
       return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+        'Location permissions are permanently denied, we cannot request permissions.',
+      );
     }
 
     // When we reach here, permissions are granted and we can
@@ -360,17 +414,18 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
   void _handleYes() async {
     print("Risposta: SI - Torno alla home");
     Position _position = await _determinePosition();
-    print(_position);
-    await ref.read(daoProvider).insert(
-        x: widget.evt.x,
-        y: widget.evt.y,
-        z: widget.evt.z,
-        ref: ref,
-        called_rescue: 1,
-        response_time: 30-sec,
-        lat: _position.latitude,
-        long: _position.longitude,
-    );
+    await ref
+        .read(daoProvider)
+        .insert(
+          x: widget.evt.x,
+          y: widget.evt.y,
+          z: widget.evt.z,
+          ref: ref,
+          called_rescue: 1,
+          response_time: 30 - sec,
+          lat: _position.latitude,
+          long: _position.longitude,
+        );
 
     _navigateBack();
   }
@@ -378,47 +433,46 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
   Future<void> _handleNo() async {
     print("Risposta: NO - Invio SMS e torno alla home");
     try {
-      // Invia SMS di emergenza
-      final contacts = ref.read(contactsProvider);
-      final msg = 'SOS! Mi trovo in pericolo '
-          '${DateTime.now().toIso8601String()} '
-          '(x:${widget.evt.x.toStringAsFixed(1)}, '
-          'y:${widget.evt.y.toStringAsFixed(1)}, '
-          'z:${widget.evt.z.toStringAsFixed(1)})';
+        Position _position = await _determinePosition();
 
-      await ref.read(smsProvider).sendIncidentAlert(contacts, msg);
-
-      Position _position = await _determinePosition();
-
-
-      await ref.read(daoProvider).insert(
-        x: widget.evt.x,
-        y: widget.evt.y,
-        z: widget.evt.z,
-        ref: ref,
-        called_rescue: 1,
-        response_time: 30-sec,
-        lat: _position.latitude,
-        long: _position.longitude,
-      );
-
-
-      print("SMS inviato con successo");
-      _navigateBack();
-
-    } catch (e) {
-      Position _position = await _determinePosition();
-
-      await ref.read(daoProvider).insert(
+        await ref
+            .read(daoProvider)
+            .insert(
           x: widget.evt.x,
           y: widget.evt.y,
           z: widget.evt.z,
           ref: ref,
           called_rescue: 1,
-          response_time: 30-sec,
+          response_time: 30 - sec,
           lat: _position.latitude,
           long: _position.longitude,
-      );
+        );
+
+        // Invia SMS di emergenza
+        final contacts = ref.read(contactsProvider);
+        final msg =
+        '''
+          🚨 SOS! Mi trovo in pericolo e ho bisogno di aiuto immediato!
+          🕒 Data e ora: ${DateTime.now().toLocal().toString()}
+          📍 Posizione: https://www.google.com/maps/search/?api=1&query=${_position.latitude},${_position.longitude}
+          ''';
+
+        await ref.read(smsProvider).sendIncidentAlert(contacts, msg);
+    } catch (e) {
+      Position _position = await _determinePosition();
+
+      await ref
+          .read(daoProvider)
+          .insert(
+            x: widget.evt.x,
+            y: widget.evt.y,
+            z: widget.evt.z,
+            ref: ref,
+            called_rescue: 1,
+            response_time: 30 - sec,
+            lat: _position.latitude,
+            long: _position.longitude,
+          );
       print('Errore invio SMS: $e');
     }
 
@@ -430,6 +484,7 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
   void _navigateBack() {
     if (mounted) {
       Navigator.pop(context);
+      print('Chiusa la modale subito');
     }
   }
 
@@ -444,7 +499,11 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
           children: [
             const Text(
               'Tutto ok?',
-              style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -484,15 +543,19 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
                       children: [
                         Icon(
                           _isListening ? Icons.mic : Icons.mic_off,
-                          color: _isListening ? Colors.greenAccent : Colors.white70,
+                          color: _isListening
+                              ? Colors.greenAccent
+                              : Colors.white70,
                           size: 28,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            _isListening ? 'Ti sto ascoltando...' :
-                            !_ttsCompleted ? 'Attendo fine messaggio...' :
-                            'Preparando ascolto...',
+                            _isListening
+                                ? 'Ti sto ascoltando...'
+                                : !_ttsCompleted
+                                ? 'Attendo fine messaggio...'
+                                : 'Preparando ascolto...',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -546,13 +609,13 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
                     'SÌ',
                     Colors.green.shade600,
                     Icons.check_circle,
-                        () => _handleResponse(true),
+                    () => _handleResponse(true),
                   ),
                   _buildActionButton(
                     'NO',
                     Colors.red.shade600,
                     Icons.cancel,
-                        () => _handleResponse(false),
+                    () => _handleResponse(false),
                   ),
                 ],
               ),
@@ -583,7 +646,12 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     ),
   );
 
-  Widget _buildActionButton(String label, Color color, IconData icon, VoidCallback onPressed) {
+  Widget _buildActionButton(
+    String label,
+    Color color,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -592,10 +660,7 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
           icon: Icon(icon, size: 24),
           label: Text(
             label,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
@@ -621,5 +686,4 @@ class _CrashAlertPageState extends ConsumerState<CrashAlertPage> {
     _speechToText.cancel();
     super.dispose();
   }
-
 }

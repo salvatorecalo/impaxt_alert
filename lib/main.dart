@@ -5,13 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
   Supabase.initialize(
       url: const String.fromEnvironment("API_URL"),
       anonKey: const String.fromEnvironment("API_KEY"),
-
   );
-
   runApp(
       ProviderScope(
           child: const MyApp(),
@@ -28,7 +25,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'ImpactAlert',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+        ),
       ),
       home: AuthGuard(),
     );

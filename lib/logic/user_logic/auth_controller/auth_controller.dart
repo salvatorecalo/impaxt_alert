@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/incidents/provider/incident_dao/incident_dao_provider/incident_dao_provider.dart';
 import 'package:impaxt_alert/logic/supabase/index.dart';
 import 'package:impaxt_alert/logic/user_logic/user_session_provider/user_session_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

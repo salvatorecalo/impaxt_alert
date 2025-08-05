@@ -1,10 +1,9 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:impaxt_alert/logic/incidents/incident_list_item./pages/incident_list_item_detail_page.dart';
 import 'package:impaxt_alert/logic/incidents/model/incident/incident.dart';
-import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/incidents/provider/contacts/contacts_by_incident_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class IncidentListItem extends ConsumerWidget {

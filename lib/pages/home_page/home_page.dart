@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:impaxt_alert/logic/incidents/provider/contacts/contacts_provider.dart';
 import 'package:impaxt_alert/logic/incidents/provider/max_incidents_for_plan/max_incidents_for_plan.dart';
 import 'package:impaxt_alert/logic/purchase/in_app_purchase_provider/in_app_purchase_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/user_session_provider/user_session_provider.dart';
@@ -17,6 +18,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   late final PageController controller;
+
   int _currentPageIndex = 0;
   bool _didMaxCheckIncidents = false;
   Timer? _incidentResetTimer;
@@ -28,6 +30,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndInsertMaxIncidents();
       _resetNumberIncidentsAfterDay();
+
+      Future.microtask(() async {
+        final session = await ref.read(authSessionProvider.future);
+        if (session != null) {
+          await ref.read(contactsProvider.notifier).syncContactsFromLocalToSupabase(ref);
+          print("Contatti locali sincronizzati con Supabase");
+        }
+      });
+
 
       _incidentResetTimer = Timer.periodic(
         const Duration(minutes: 1),
@@ -143,7 +154,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           HistoryPage(onGoToShop: (){
             setState(() {
-              _currentPageIndex = 2;
+              onBottomNavTap(1);
             });
           },),
           ShopPage(),

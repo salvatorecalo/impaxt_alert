@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:impaxt_alert/logic/incidents/crash_alert_page/crash_alert_page.dart';
 import 'package:impaxt_alert/logic/incidents/incident_list_item./incident_list_item.dart';
-import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/incidents/provider/incidents_provider/incidents_provider.dart';
+import 'package:impaxt_alert/logic/incidents/provider/sensor/sensor_data_provider/sensor_data_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/auth_controller/provider/auth_controller_provider.dart';
 import 'package:impaxt_alert/logic/user_logic/user_session_provider/user_session_provider.dart';
 import 'package:impaxt_alert/pages/home_page/pages/index.dart';
@@ -229,8 +230,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     child: TextButton(
                         child: Text("Acquista"),
                       onPressed: () {
-                          Navigator.pop(context);
-                          widget.onGoToShop?.call();
+                        Navigator.pop(context);
+                        widget.onGoToShop?.call();
                       },
                     ),
                   ),

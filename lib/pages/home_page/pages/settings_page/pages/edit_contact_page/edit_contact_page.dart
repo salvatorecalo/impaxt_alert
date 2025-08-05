@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' hide Contact;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:impaxt_alert/logic/incidents/provider/providers.dart';
+import 'package:impaxt_alert/logic/incidents/provider/contacts/contacts_provider.dart';
+import 'package:impaxt_alert/logic/incidents/provider/contacts/model/my_contact_model.dart';
 import 'package:impaxt_alert/pages/utils/index.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -41,50 +42,46 @@ class EditContactPage extends ConsumerWidget {
                   ),
                 ),
               )
-            : Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: contacts.length,
-                          itemBuilder: (context, index) {
-                            final contact = contacts[index];
-                            return ListTile(
-                              title: Text(contact.name),
-                              subtitle: Text(contact.phoneNumber),
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  ref
-                                      .read(contactsProvider.notifier)
-                                      .removeContact(contact.phoneNumber);
-                                },
-                              ),
-                            );
+            : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: contacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = contacts[index];
+                      return ListTile(
+                        title: Text(contact.name),
+                        subtitle: Text(contact.phoneNumber),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            ref
+                                .read(contactsProvider.notifier)
+                                .removeContact(contact.phoneNumber, ref);
                           },
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: TextButton(
-                          onPressed: () async {
-                            await launchUrl(
-                              Uri.parse(
-                                "https://salvatorecalo.github.io/impaxt_alert_privacy_policy.github.io/",
-                              ),
-                            );
-                          },
-                          child: Text(
-                            "Privacy e trattamento dati",
-                            style: TextStyle(fontSize: 16, color: Colors.blue),
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: TextButton(
+                    onPressed: () async {
+                      await launchUrl(
+                        Uri.parse(
+                          "https://salvatorecalo.github.io/impaxt_alert_privacy_policy.github.io/",
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Privacy e trattamento dati",
+                      style: TextStyle(fontSize: 16, color: Colors.blue),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         bottomNavigationBar: Container(
           margin: const EdgeInsets.all(10),
           child: ElevatedButton(
