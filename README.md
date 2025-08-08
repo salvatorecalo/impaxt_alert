@@ -1,16 +1,4 @@
 # impaxt_alert
 
-Call rescued after Impact
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+An app to notify your contacts in case of an emergency.
+How the app works: If an accident is detected via the phone's accelerometers and gyroscopes, a full-screen notification is sent asking the user (both verbally for the hearing impaired and through text on the app) if everyone present is OK. If the answer is "yes," the app saves the accident information and adds it to the history (which can be saved on Supabase if the user is logged in). Otherwise, if the user presses "no" or there is no response within 30 seconds, the app sends a WhatsApp message to all contacts added to the contact list.
